@@ -1,14 +1,15 @@
 from card import Card
 from selenium.webdriver.common.by import By
-from typing import Union
+from typing import Union, Callable, Any
 from selenium.webdriver import Firefox
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.remote.webelement import WebElement
 from time import sleep, time
 import json, jsonpickle
 
-class Scraper:
+class ScraperParent:
     def __init__(self, 
                  sites_formats: Union[dict[str, str], None] = None,
                  data_file: str = "data/card_data.json") -> None:
@@ -28,60 +29,91 @@ class Scraper:
                 self.cards.append(card)
         except FileNotFoundError:
             pass
+
+    def save(self, data: list[str]):
+        self.card_data["last_scrape"] = time()
+        self.card_data["cards"] = data
+        json.dump(self.card_data, open(self.data_file, "w"), indent=4)
+
+class WebScraper:
+    def __init__(
+            self, 
+            driver: Firefox,
+            save_data,
+        ) -> None:
         
+        self.driver: Firefox = driver
+        self.save_data = save_data
+        self.card_data: list[str] = []
+
+        self.class_name: str
+        self.site: str
+        self.main_site: str
+
+        self.in_stock: Callable[[Any, WebElement], bool]
+        self.price: Callable[[Any, WebElement], Union[float, tuple[float, float]]]
+
+    def scrape(
+                self,
+                card_name: str
+            ) -> list[Card]:
         
-    def scrape(self, site: str) -> list[Card]:
         self.cards = []
-        self.site = site.lstrip("http").lstrip("s").lstrip("://").lstrip("www.").split("/")[0]
+        site = self.site.replace("{card_name}", card_name)
         self.driver.get(site)
         self.driver.execute_script("document.body.style.zoom = '0.1'")
-        match self.site:
-            case "magicstronghold.com":
-                self.stronghold_scrape()
-            case "facetofacegames.com":
-                self.f2f_scrape()
-            case _:
-                print("Invalid website")
-        self.card_data["last_scrape"] = time()
-        json.dump(self.card_data, open(self.data_file, "w"), indent=4)
-        return self.cards
-    
-    def stronghold_scrape(self) -> None:
-        WebDriverWait(self.driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "prodImage")))
-        sleep(7)
-        page_cards = self.driver.find_elements(By.CLASS_NAME, "searchResult")
+        WebDriverWait(self.driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, self.class_name)))
+        sleep(5)
+        page_cards = self.driver.find_elements(By.CLASS_NAME, self.class_name)
         for page_card in page_cards:
             try:
-                in_stock = "fa-shopping-cart" in page_card.find_element(By.CLASS_NAME, "quickAddBtn").get_dom_attribute("class")
-                if in_stock:
-                    img = page_card.find_element(By.CLASS_NAME, "prodImage").get_dom_attribute("src")
-                    link = "https://magicstronghold.com" + page_card.find_element(By.CLASS_NAME, "searchResultLeftTop").get_dom_attribute("href")
-                    price = page_card.find_element(By.CLASS_NAME, "prodPrice").text.strip("$")
+                if self.in_stock(page_card):
+                    img_element = page_card.find_element(By.CSS_SELECTOR, "img")
+                    img_src = img_element.get_dom_attribute("src")
+
+                    link_element = page_card.find_element(By.CSS_SELECTOR, "a")
+                    link = self.main_site + link_element.get_dom_attribute("href")
                     
-                    card = Card(img=img, site=self.site, link=link, price=float(price))
-                    self.card_data["cards"].append(jsonpickle.encode(card))
+                    card = Card(img=img_src, site=self.main_site, link=link, price=self.price(page_card))
+                    self.card_data.append(str(jsonpickle.encode(card)))
                     self.cards.append(card)
             except NoSuchElementException:
                 pass
+        self.save_data(self.card_data)
+        return self.cards
+    
+class StrongholdScraper(WebScraper):
+    def __init__(self, driver: Firefox, save_data: Callable[[Any, list[str]], None]) -> None:
+        super().__init__(driver, save_data)
+        self.class_name = "searchResult"
+        self.site = "https://magicstronghold.com/store/search/{card_name}"
+        self.main_site = "magicstronghold.com"
 
-    def f2f_scrape(self) -> None:
-        WebDriverWait(self.driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "bb-card-wrapper")))
-        sleep(3)
-        page_cards = self.driver.find_elements(By.CLASS_NAME, "bb-card-wrapper")
-        for page_card in page_cards:
-            img = page_card.find_element(By.CSS_SELECTOR, "img").get_dom_attribute("src")
-            link = "https://facetofacegames.com" + page_card.find_element(By.CSS_SELECTOR, "a").get_dom_attribute("href")
-            price_divs = page_card.find_elements(By.CLASS_NAME, "f2f-featured-variant")
-            price = []
-            card = None
-            if len(price_divs) == 2:
-                for price_div in price_divs:
-                    new_price = price_div.find_element(By.CSS_SELECTOR, ".price-item span + span").text
-                    price.append(float(new_price))
-                price = tuple(price)
-            else:
-                price = float(price_divs[0].find_element(By.CSS_SELECTOR, ".price-item span + span").text)
+    def in_stock(self, page_card: WebElement) -> bool:
+        shop_btn_classes = page_card.find_element(By.CLASS_NAME, "quickAddBtn").get_dom_attribute("class")
+        return "fa-shopping-cart" in shop_btn_classes
+    
+    def price(self, page_card: WebElement) -> float:
+        return float(page_card.find_element(By.CLASS_NAME, "prodPrice").text.strip("$"))
 
-            card = Card(img=img, link=link, site=self.site, price=price)
-            self.card_data["cards"].append(jsonpickle.encode(card))
-            self.cards.append(card)
+class F2FScraper(WebScraper):
+    def __init__(self, driver: Firefox, save_data) -> None:
+        super().__init__(driver, save_data)
+        self.class_name = "bb-card-wrapper"
+        self.site = "https://facetofacegames.com/en-us/search?q={card_name}&filter__Availability=In+Stock"
+        self.main_site = "facetofacegames.com"
+
+    def in_stock(self, page_card: WebElement) -> bool:
+        return True
+    
+    def price(self, page_card: WebElement) -> Union[float, tuple[float, float]]:
+        price = []
+        price_divs = page_card.find_elements(By.CLASS_NAME, "f2f-featured-variant")
+        if len(price_divs) == 2:
+            for price_div in price_divs:
+                new_price = price_div.find_element(By.CSS_SELECTOR, ".price-item span + span").text
+                price.append(float(new_price))
+            price = tuple(price)
+        else:
+            price = float(price_divs[0].find_element(By.CSS_SELECTOR, ".price-item span + span").text)
+        return price

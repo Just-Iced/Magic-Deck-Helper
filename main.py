@@ -4,20 +4,12 @@ from card import Card
 
 app = FastAPI()
 scraper: ScraperParent = ScraperParent()
-stronghold_scraper = StrongholdScraper(scraper.driver, save_data=scraper.save)
-f2f_scraper = F2FScraper(scraper.driver, scraper.save)
-connection_scraper = ConectionScraper(scraper.driver, scraper.save) 
+scraper.scrapers.append(StrongholdScraper(scraper.driver, scraper.save))
+scraper.scrapers.append(F2FScraper(scraper.driver, scraper.save))
+scraper.scrapers.append(ConectionScraper(scraper.driver, scraper.save)) 
 
-@app.get("/stronghold/{card_name}")
-def get_stronghold_card(card_name: str) -> list[Card]:
-    return stronghold_scraper.scrape(card_name)
-
-@app.get("/f2f/{card_name}")
-def get_f2f_card(card_name: str) -> list[Card]:
-    return f2f_scraper.scrape(card_name)
-
-@app.get("/connection/{card_name}")
-def get_connection_card(card_name: str) -> list[Card]:
-    return connection_scraper.scrape(card_name)
+@app.get("/card/{card_name}")
+def find_card(card_name: str) -> list[Card]:
+    return scraper.scrape(card_name)
     
 app.add_event_handler("shutdown", scraper.driver.quit)

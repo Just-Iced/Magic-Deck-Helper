@@ -30,10 +30,19 @@ class ScraperParent:
         except FileNotFoundError:
             pass
 
+        self.scrapers: list[WebScraper] = []
+
     def save(self, data: list[str]):
         self.card_data["last_scrape"] = time()
         self.card_data["cards"] = data
         json.dump(self.card_data, open(self.data_file, "w"), indent=4)
+
+    def scrape(self, card_name: str):
+        cards: list[Card] = []
+        for scraper in self.scrapers:
+            for card in scraper.scrape(card_name):
+                cards.append(card)
+        return cards
 
 class WebScraper:
     def __init__(
@@ -83,7 +92,7 @@ class WebScraper:
         return self.cards
     
 class StrongholdScraper(WebScraper):
-    def __init__(self, driver: Firefox, save_data: Callable[[Any, list[str]], None]) -> None:
+    def __init__(self, driver: Firefox, save_data) -> None:
         super().__init__(driver, save_data)
         self.class_name = "searchResult"
         self.site = "https://magicstronghold.com/store/search/{card_name}"
@@ -135,7 +144,6 @@ class ConectionScraper(WebScraper):
         if len(prices) > 1:
             for price_text in prices:
                 new_price = price_text.get_dom_attribute("data-price").strip().lstrip("CAD$ ")
-                print(price_text.get_dom_attribute("data-price"))
                 price.append(float(new_price))
             price = tuple(price)
         else:

@@ -117,3 +117,27 @@ class F2FScraper(WebScraper):
         else:
             price = float(price_divs[0].find_element(By.CSS_SELECTOR, ".price-item span + span").text)
         return price
+    
+class ConectionScraper(WebScraper):
+    def __init__(self, driver: Firefox, save_data) -> None:
+        super().__init__(driver, save_data)
+        self.class_name = "product"
+        self.site = "https://www.theconnectiongames.com/advanced_search?utf8=%E2%9C%93&search[fuzzy_search]={card_name}&search[tags_name_eq]=&search[in_stock]=0&search[in_stock]=1"
+        self.main_site = "theconnectiongames.com"
+
+    def in_stock(self, page_card: WebElement) -> bool:
+        return True
+    
+    def price(self, page_card: WebElement) -> Union[float, tuple[float, float]]:
+        price = []
+        prices = page_card.find_elements(By.CLASS_NAME, "add-to-cart-form")
+
+        if len(prices) > 1:
+            for price_text in prices:
+                new_price = price_text.get_dom_attribute("data-price").strip().lstrip("CAD$ ")
+                print(price_text.get_dom_attribute("data-price"))
+                price.append(float(new_price))
+            price = tuple(price)
+        else:
+            price = float(prices[0].get_dom_attribute("data-price").strip().lstrip("CAD$ "))
+        return price

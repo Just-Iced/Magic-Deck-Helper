@@ -6,3 +6,4 @@ class Card(BaseModel):
     link: str
     site: str
     price: Union[float, tuple[float, ...]]
+    name: str

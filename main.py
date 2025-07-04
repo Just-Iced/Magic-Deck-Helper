@@ -1,12 +1,17 @@
 from fastapi import FastAPI
-from scraper import StrongholdScraper, ScraperParent, F2FScraper, ConnectionScraper
+from scrapers import *
+from scraper_parent import ScraperParent
 from card import Card
 
 app = FastAPI()
 scraper: ScraperParent = ScraperParent()
-scraper.scrapers.append(StrongholdScraper(scraper.driver, scraper.save))
-scraper.scrapers.append(F2FScraper(scraper.driver, scraper.save))
-scraper.scrapers.append(ConnectionScraper(scraper.driver, scraper.save)) 
+scraper.add_scraper(StrongholdScraper(scraper.driver, scraper.save))
+scraper.add_scraper(F2FScraper(scraper.driver, scraper.save))
+scraper.add_scraper(ConnectionScraper(scraper.driver, scraper.save))
+scraper.add_scraper(SequenceScraper(scraper.driver, scraper.save))
+scraper.add_scraper(TCGPlayerScraper(scraper.driver, scraper.save))
+scraper.add_scraper(LegendaryScraper(scraper.driver, scraper.save))
+scraper.add_scraper(UntouchablesScraper(scraper.driver, scraper.save))
 
 @app.get("/card/{card_name}")
 def find_card(card_name: str) -> list[Card]:

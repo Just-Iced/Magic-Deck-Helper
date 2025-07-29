@@ -6,15 +6,14 @@ from card import Card
 app = FastAPI()
 scraper: ScraperParent = ScraperParent()
 
-scraper.add_scraper(StrongholdScraper(scraper.save))
-scraper.add_scraper(F2FScraper(scraper.save))
-scraper.add_scraper(ConnectionScraper(scraper.save))
-scraper.add_scraper(SequenceScraper(scraper.save))
-scraper.add_scraper(TCGPlayerScraper(scraper.save))
-scraper.add_scraper(LegendaryScraper(scraper.save))
-scraper.add_scraper(UntouchablesScraper(scraper.save))
+scrapers = [StrongholdScraper, F2FScraper, ConnectionScraper, 
+            SequenceScraper, TCGPlayerScraper, LegendaryScraper, 
+            UntouchablesScraper]
 
-scraper.scrape_all_cards()
+[scraper.add_scraper(scraperClass(scraper.save)) for scraperClass in scrapers]
+
+# Commented out for now as it would take ~5 days to complete scraping
+# scraper.scrape_all_cards()
 
 @app.get("/card/{card_name}")
 def find_card(card_name: str) -> list[Card]:

@@ -43,6 +43,8 @@ class ScraperParent:
             json.dump(self.card_data, data_file, indent=4)
     
     def get_card(self, card_name: str) -> list[Card]:
+        if card_name not in self.card_data["cards"]:
+            self.scrape(card_name)
         cards = [jsonpickle.decode(card) for card in self.card_data["cards"][card_name]]
         return cards
 
@@ -61,4 +63,4 @@ class ScraperParent:
         return json.load(open("data/card_list.json"))
     
     def quit(self):
-        [scraper.driver.quit for scraper in self.scrapers]
+        [scraper.driver.quit() for scraper in self.scrapers]

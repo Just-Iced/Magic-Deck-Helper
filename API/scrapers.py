@@ -6,7 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.remote.webelement import WebElement
-from time import time
+from time import time, sleep
 import jsonpickle
 
 class WebScraper:
@@ -15,7 +15,7 @@ class WebScraper:
             save_data: Callable[..., None],
         ) -> None:
         options = FirefoxOptions()
-        options.add_argument("--headless")
+        #options.add_argument("--headless")
         self.driver: Firefox = Firefox(options=options)
         self.driver.minimize_window()
         self.save_data = save_data
@@ -69,6 +69,8 @@ class StrongholdScraper(WebScraper):
         self.site = "https://magicstronghold.com/store/search/{card_name}"
         self.main_site = "magicstronghold.com"
         self.card_name_class = "prodName"
+        sleep(3)
+        self.driver.get(self.site)
 
     def in_stock(self, page_card: WebElement) -> bool:
         shop_btn_classes = page_card.find_element(By.CLASS_NAME, "quickAddBtn").get_dom_attribute("class")
@@ -84,6 +86,8 @@ class F2FScraper(WebScraper):
         self.site = "https://facetofacegames.com/en-us/search?q={card_name}&filter__Availability=In+Stock"
         self.main_site = "facetofacegames.com"
         self.card_name_class = "bb-card-title"
+        sleep(3)
+        self.driver.get(self.site)
 
     def in_stock(self, page_card: WebElement) -> bool:
         return True
@@ -100,13 +104,11 @@ class F2FScraper(WebScraper):
             price = float(price_divs[0].find_element(By.CSS_SELECTOR, ".price-item span + span").text)
         return price
     
-class ConnectionScraper(WebScraper):
+class ConnectionBackend(WebScraper):
     def __init__(self, save_data: Callable) -> None:
         super().__init__(save_data)
-        self.class_name = "product"
-        self.site = "https://www.theconnectiongames.com/advanced_search?utf8=%E2%9C%93&search[fuzzy_search]={card_name}&search[tags_name_eq]=&search[in_stock]=0&search[in_stock]=1"
-        self.main_site = "theconnectiongames.com"
         self.card_name_class = "name"
+        self.class_name = "product"
 
     def in_stock(self, page_card: WebElement) -> bool:
         return True
@@ -123,12 +125,22 @@ class ConnectionScraper(WebScraper):
         else:
             price = float(prices[0].get_dom_attribute("data-price").strip().lstrip("CAD$ "))
         return price
-    
-class SequenceScraper(ConnectionScraper):
+
+class ConnectionScraper(ConnectionBackend):
+    def __init__(self, save_data: Callable[..., Any]) -> None:
+        super().__init__(save_data)
+        self.site = "https://www.theconnectiongames.com/advanced_search?utf8=%E2%9C%93&search[fuzzy_search]={card_name}&search[tags_name_eq]=&search[in_stock]=0&search[in_stock]=1"
+        self.main_site = "theconnectiongames.com"
+        sleep(3)
+        self.driver.get(self.site)
+
+class SequenceScraper(ConnectionBackend):
     def __init__(self, save_data: Callable) -> None:
         super().__init__(save_data)
         self.site = "https://www.sequencecomics.ca/advanced_search?utf8=✓&search[fuzzy_search]={card_name}&search[in_stock]=0&search[in_stock]=1"
         self.main_site = "sequencecomics.ca"
+        sleep(3)
+        self.driver.get(self.site)
 
 class TCGPlayerScraper(WebScraper):
     def __init__(self, save_data: Callable) -> None:
@@ -137,6 +149,8 @@ class TCGPlayerScraper(WebScraper):
         self.site = "https://www.tcgplayer.com/search/magic/product?productLineName=magic&q={card_name}&view=grid&ProductTypeName=Cards&page=1&inStock=true"
         self.main_site = "tcgplayer.com"
         self.card_name_class = "product-card__title"
+        sleep(3)
+        self.driver.get(self.site)
 
     def in_stock(self, page_card: WebElement) -> bool:
         return True
@@ -155,6 +169,8 @@ class LegendaryScraper(WebScraper):
         self.site = "https://legendarycollectables.com/search?filter.v.availability=1&q=product_type%3AMTG+Single+AND+{card_name}"
         self.main_site = "legendarycollectables.com"
         self.card_name_class = "productitem--title"
+        sleep(3)
+        self.driver.get(self.site)
 
     def in_stock(self, page_card: WebElement) -> bool:
         return True
@@ -170,6 +186,8 @@ class UntouchablesScraper(WebScraper):
         self.site = "https://untouchables.ca/pages/advanced-search?q={card_name}&game=mtg&availabilty=true&setNames=&colors=&rarities=&types=&pricemin=&pricemax=&page=1&order=price-ascending"
         self.main_site = "untouchables.ca"
         self.card_name_class = "productCard__title"
+        sleep(3)
+        self.driver.get(self.site)
 
     def in_stock(self, page_card: WebElement) -> bool:
         return True

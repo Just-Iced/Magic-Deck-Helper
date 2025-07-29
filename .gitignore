@@ -194,4 +194,9 @@ cython_debug/
 .cursorindexingignore
 
 # Data from card scraping
-/data
+*/data/
+
+# Node
+#   Node Modules
+*/node_modules/
+*.env

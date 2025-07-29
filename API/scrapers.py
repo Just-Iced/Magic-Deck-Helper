@@ -1,12 +1,12 @@
 from card import Card
 from selenium.webdriver.common.by import By
 from typing import Union, Callable, Any
-from selenium.webdriver import Firefox, FirefoxOptions
+from selenium.webdriver import FirefoxOptions, Firefox
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.remote.webelement import WebElement
-from time import sleep
+from time import time
 import jsonpickle
 
 class WebScraper:
@@ -33,16 +33,15 @@ class WebScraper:
                 self,
                 card_name: str
             ) -> list[Card]:
-        
+        init_time = time()
         self.cards = []
         site = self.site.replace("{card_name}", card_name)
         self.driver.get(site)
         self.driver.execute_script("document.body.style.zoom = '0.1'")
         try:
-            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, self.class_name)))
+            WebDriverWait(self.driver, 5).until(EC.visibility_of_element_located((By.CLASS_NAME, self.class_name)))
         except TimeoutException:
             return []
-        sleep(4)
         page_cards = self.driver.find_elements(By.CLASS_NAME, self.class_name)
         for page_card in page_cards:
             try:
@@ -60,6 +59,7 @@ class WebScraper:
             except NoSuchElementException:
                 pass
         self.save_data(self.card_data, card_name)
+        print(f"{self.main_site}: {round(time() - init_time, 2)} seconds")
         return self.cards
     
 class StrongholdScraper(WebScraper):
@@ -76,6 +76,7 @@ class StrongholdScraper(WebScraper):
     
     def price(self, page_card: WebElement) -> float:
         return float(page_card.find_element(By.CLASS_NAME, "prodPrice").text.strip("$"))
+    
 class F2FScraper(WebScraper):
     def __init__(self, save_data: Callable) -> None:
         super().__init__(save_data)
@@ -98,6 +99,7 @@ class F2FScraper(WebScraper):
         else:
             price = float(price_divs[0].find_element(By.CSS_SELECTOR, ".price-item span + span").text)
         return price
+    
 class ConnectionScraper(WebScraper):
     def __init__(self, save_data: Callable) -> None:
         super().__init__(save_data)
@@ -121,11 +123,13 @@ class ConnectionScraper(WebScraper):
         else:
             price = float(prices[0].get_dom_attribute("data-price").strip().lstrip("CAD$ "))
         return price
+    
 class SequenceScraper(ConnectionScraper):
     def __init__(self, save_data: Callable) -> None:
         super().__init__(save_data)
         self.site = "https://www.sequencecomics.ca/advanced_search?utf8=✓&search[fuzzy_search]={card_name}&search[in_stock]=0&search[in_stock]=1"
         self.main_site = "sequencecomics.ca"
+
 class TCGPlayerScraper(WebScraper):
     def __init__(self, save_data: Callable) -> None:
         super().__init__(save_data)
@@ -143,6 +147,7 @@ class TCGPlayerScraper(WebScraper):
             return float(price_text.strip("$").replace(",", ""))
         except ValueError:
             return 0
+        
 class LegendaryScraper(WebScraper):
     def __init__(self, save_data: Callable[..., Any]) -> None:
         super().__init__(save_data)
@@ -157,6 +162,7 @@ class LegendaryScraper(WebScraper):
     def price(self, page_card: WebElement) -> float:
         price_text = page_card.find_element(By.CLASS_NAME, "price__current--min").text
         return float(price_text.strip("$").replace(",", ""))
+    
 class UntouchablesScraper(WebScraper):
     def __init__(self, save_data: Callable[..., Any]) -> None:
         super().__init__(save_data)

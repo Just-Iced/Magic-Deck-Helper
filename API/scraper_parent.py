@@ -20,23 +20,27 @@ class ScraperParent:
         self.scrapers: list[WebScraper] = []
 
     def save(self, data: list[str], card_name: str) -> None:
-        self.card_data["last_scrape"] = time()
         self.card_data["cards"][card_name] = data
         with open(self.data_file, "w") as data_file:
             json.dump(self.card_data, data_file, indent=4)
 
     def scrape(self, card_name: str) -> None:
         threads = []
+        card_index = self.card_list.index(card_name) + 1
+        print(f"{card_index}/{len(self.card_list)} ({round(float(card_index) / len(self.card_list), 4)}%). {card_name}")
         for scraper in self.scrapers:
             x = threading.Thread(target=scraper.scrape, args=[card_name])
             x.start()
             threads.append(x)
-        [thread.join() for thread in threads]
             
+        [thread.join() for thread in threads]
     
     def scrape_all_cards(self) -> None:
         if time() - self.card_data["last_scrape"] >= 86_400:
             [self.scrape(card) for card in self.card_list]
+        self.card_data["last_scrape"] = time()
+        with open(self.data_file, "w") as data_file:
+            json.dump(self.card_data, data_file, indent=4)
     
     def get_card(self, card_name: str) -> list[Card]:
         cards = [jsonpickle.decode(card) for card in self.card_data["cards"][card_name]]
@@ -47,7 +51,8 @@ class ScraperParent:
 
     def convert_scryfall_data_to_list(self) -> None:
         all_cards: dict = json.load(open("data/all_cards.json", encoding="utf-8"))
-        cards_list = [card["name"] for card in all_cards]
+        cards_list = [card["name"] for card in all_cards if card["legalities"]["commander"] == "legal"]
+        cards_list.sort()
         json.dump(cards_list, open("data/card_list.json", "w"), indent=4)
 
     def get_card_list(self) -> list[str]:

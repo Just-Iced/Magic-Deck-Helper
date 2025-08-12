@@ -9,23 +9,31 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
 
+  <!-- Google Material Icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=search" />
+
   <!-- Custom Stylesheets -->
   <link href="/css/main.css" rel="stylesheet">
   <link href="/css/card.css" rel="stylesheet">
 </head>
 
 <body>
-  <div class="container grid">
-    <div class="row" id="card-container">
 
-    </div>
+  <div class="container grid">
+    <form id="search-form" class="text-center">
+      <input type="text" class="mt-3">
+      <button type="submit"><span class="material-symbols-outlined">search</span></button>
+    </form>
+    <div class="loader d-none text-center"></div>
+    <div class="row" id="card-container"></div>
   </div>
 
   <template id="card-template">
     <div class="container border text-center mt-2 p-2 card">
       <img class="thumbnail img-sm card-img" src="https://cdn.shopify.com/s/files/1/0574/4692/4324/files/688bc20245648a7c9d64c6c1c45d22efbd366941_Asset_MTG_CMM_84_ENG_F_jpg_400x400.jpg?v=1737436269" alt="A Magic card">
-      <p class="text-center text-secondary my-0 card-name">Cyclonic Rift</p>
-      <p class="text-center text-secondary my-0 card-site"><small>Face To Face Games</small></p>
+      <h4 class="text-center card-price">Card Price</h4>
+      <p class="text-center text-secondary my-0 card-name">Card Name</p>
+      <p class="text-center text-secondary my-0 card-site"><small>Card Site</small></p>
       <a class="btn btn-success text-center my-0 card-link" href="/">Go to Card</a>
     </div>
   </template>

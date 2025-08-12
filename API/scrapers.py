@@ -15,11 +15,10 @@ class WebScraper:
             save_data: Callable[..., None],
         ) -> None:
         options = FirefoxOptions()
-        #options.add_argument("--headless")
+        options.add_argument("--headless")
         self.driver: Firefox = Firefox(options=options)
         self.driver.minimize_window()
         self.save_data = save_data
-        self.card_data: list[str] = []
 
         self.class_name: str
         self.card_name_class: str
@@ -35,6 +34,7 @@ class WebScraper:
             ) -> list[Card]:
         init_time = time()
         self.cards = []
+        card_data: list[str] = []
         site = self.site.replace("{card_name}", card_name)
         self.driver.get(site)
         self.driver.execute_script("document.body.style.zoom = '0.1'")
@@ -54,11 +54,11 @@ class WebScraper:
                     link = self.main_site + link_element.get_dom_attribute("href")
                     
                     card = Card(img=img_src, site=self.main_site, link=link, price=self.price(page_card), name=page_card_name)
-                    self.card_data.append(str(jsonpickle.encode(card)))
+                    card_data.append(str(jsonpickle.encode(card)))
                     self.cards.append(card)
             except NoSuchElementException:
                 pass
-        self.save_data(self.card_data, card_name)
+        self.save_data(card_data, card_name)
         print(f"{self.main_site}: {round(time() - init_time, 2)} seconds")
         return self.cards
     

@@ -25,6 +25,8 @@ class ScraperParent:
             json.dump(self.card_data, data_file, indent=4)
 
     def scrape(self, card_name: str) -> None:
+        if card_name not in self.card_list:
+            return
         threads = []
         card_index = self.card_list.index(card_name) + 1
         print(f"{card_index}/{len(self.card_list)} ({round(float(card_index) / len(self.card_list), 4)}%). {card_name}")

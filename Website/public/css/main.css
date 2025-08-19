@@ -7,3 +7,8 @@
   animation: l2 1s infinite linear;
 }
 @keyframes l2 {to{transform: rotate(1turn)}}
+
+.icon {
+  width: 64px;
+  height: 64px;
+}

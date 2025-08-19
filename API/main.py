@@ -24,11 +24,11 @@ scrapers = [StrongholdScraper, F2FScraper, ConnectionScraper,
 [scraper.add_scraper(scraperClass(scraper.save)) for scraperClass in scrapers]
 
 app.add_middleware(
-CORSMiddleware,
-allow_origins=["*"],  # Set this to the specific origin(s) you want to allow
-allow_credentials=True,
-allow_methods=["*"],  # Set this to the specific HTTP methods you want to allow
-allow_headers=["*"],  # Set this to the specific HTTP headers you want to allow
+CORSMiddleware, 
+allow_origins=["*"], 
+allow_credentials=True, 
+allow_methods=["*"], 
+allow_headers=["*"], 
 )
 
 # Commented out for now as it would take ~5 days to complete scraping
@@ -37,5 +37,9 @@ allow_headers=["*"],  # Set this to the specific HTTP headers you want to allow
 @app.get("/card/{card_name}")
 def find_card(card_name: str) -> list[Card]:
     return scraper.get_card(card_name)
-    
+
+@app.get("/cardlist")
+def get_card_list() -> list[str]:
+    return scraper.card_list
+
 app.add_event_handler("shutdown", scraper.quit)

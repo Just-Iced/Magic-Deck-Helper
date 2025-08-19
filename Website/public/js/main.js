@@ -2,9 +2,18 @@ const cardTemplate = document.getElementById("card-template");
 const cardContainer = document.getElementById("card-container");
 const loader = document.querySelector(".loader");
 const searchForm = document.getElementById("search-form");
+const cardDataList = document.getElementById("card-list");
+const searchInput = document.getElementById("search-input");
+const title = document.querySelector("title");
 
-function populateCards(cardName) {
-    cardContainer.innerHTML = "";
+function populateCards() {
+    if (validateInput() === false) {
+        throw new Error("Card not valid.");
+    }
+
+    const cardName = searchInput.value;
+    title.innerHTML = `Highlands - ${cardName}`;
+    
     loader.classList.remove("d-none");
     fetch(`http://localhost:8080/card/${cardName}`, {
         method: "GET",
@@ -14,6 +23,7 @@ function populateCards(cardName) {
     }).then(response => {
         return response.json();
     }).then(data => {
+        cardContainer.innerHTML = `${data.length} results<br><br>`;
         for (cardData of data) {
             if (cardData.name.includes(cardName)) {
                 let newCard = cardTemplate.content.cloneNode(true);
@@ -26,13 +36,36 @@ function populateCards(cardName) {
                 cardContainer.appendChild(newCard);
             }
         }
-        if (cardContainer.children.length == 0) {cardContainer.innerHTML = "No cards found."} 
+        if (cardContainer.children.length == 0) { cardContainer.innerHTML = "No cards found." }
         loader.classList.add("d-none");
     });
 }
 
 searchForm.addEventListener("submit", e => {
     e.preventDefault();
-    let cardName = searchForm.querySelector("input").value;
-    populateCards(cardName);
+    populateCards();
 });
+
+function populateCardList() {
+    fetch("http://localhost:8080/cardlist")
+        .then(res => res.json())
+        .then(cardList => {
+            cardList.forEach(cardName => {
+                let cardOption = document.createElement("option");
+                cardOption.value = cardName;
+                cardDataList.appendChild(cardOption);
+            });
+        });
+}
+
+populateCardList();
+
+function validateInput() {
+    const res = document.querySelector(`option[value="${searchInput.value}"]`)
+
+    if (res === null || searchInput.value.length === 0) {
+        alert("Not a valid card.");
+        return false;
+    }
+    return true;
+}

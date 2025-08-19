@@ -55,7 +55,7 @@ class ScraperParent:
 
     def convert_scryfall_data_to_list(self) -> None:
         all_cards: dict = json.load(open("data/all_cards.json", encoding="utf-8"))
-        cards_list = [card["name"] for card in all_cards if card["legalities"]["commander"] == "legal"]
+        cards_list = [card["name"] for card in all_cards]
         cards_list.sort()
         json.dump(cards_list, open("data/card_list.json", "w"), indent=4)
 

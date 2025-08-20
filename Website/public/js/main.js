@@ -5,6 +5,7 @@ const searchForm = document.getElementById("search-form");
 const cardDataList = document.getElementById("card-list");
 const searchInput = document.getElementById("search-input");
 const title = document.querySelector("title");
+const resultsCount = document.getElementById("results-count");
 
 function populateCards() {
     if (validateInput() === false) {
@@ -13,7 +14,7 @@ function populateCards() {
 
     const cardName = searchInput.value;
     title.innerHTML = `Highlands - ${cardName}`;
-    
+    cardContainer.innerHTML = `<div><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br></div>`;
     loader.classList.remove("d-none");
     fetch(`http://localhost:8080/card/${cardName}`, {
         method: "GET",
@@ -23,7 +24,7 @@ function populateCards() {
     }).then(response => {
         return response.json();
     }).then(data => {
-        cardContainer.innerHTML = `${data.length} results<br><br>`;
+        cardContainer.innerHTML = "";
         for (cardData of data) {
             if (cardData.name.includes(cardName)) {
                 let newCard = cardTemplate.content.cloneNode(true);
@@ -36,7 +37,10 @@ function populateCards() {
                 cardContainer.appendChild(newCard);
             }
         }
-        if (cardContainer.children.length == 0) { cardContainer.innerHTML = "No cards found." }
+        resultsCount.innerHTML = `${cardContainer.children.length} results<br><br>`;
+        if (cardContainer.children.length == 0) { 
+            cardContainer.innerHTML = "No cards found. <div><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br></div>";
+        }
         loader.classList.add("d-none");
     });
 }
@@ -69,3 +73,5 @@ function validateInput() {
     }
     return true;
 }
+
+searchInput.value = "";

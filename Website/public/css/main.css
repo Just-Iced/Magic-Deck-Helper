@@ -6,9 +6,31 @@
   border-right-color: orange;
   animation: l2 1s infinite linear;
 }
-@keyframes l2 {to{transform: rotate(1turn)}}
+
+@keyframes l2 {
+  to {
+    transform: rotate(1turn)
+  }
+}
 
 .icon {
   width: 64px;
   height: 64px;
+}
+
+header {
+  position: sticky;
+}
+
+h2 {
+  white-space: nowrap;
+}
+
+#card-container {
+  height: 60%;
+  max-height: 60%;
+}
+
+.search {
+  white-space: nowrap;
 }

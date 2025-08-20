@@ -1,5 +1,14 @@
 .card {
     max-width: fit-content;
     max-height: fit-content;
-    width: 40%;
+    width: 200px;
+    height: 425px;
+    margin-top: 5%;
+    position: relative;
+}
+
+.card a {
+    position: absolute;
+    bottom: 5px;
+    left: 50px
 }

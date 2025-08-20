@@ -24,14 +24,37 @@
         <h2 class="ms-3">The Highlands</h2>
       </a>
       <div class="d-flex align-items-center text-center">
-        <form class="w-100 text-center" role="search" id="search-form"> <input type="search" id="search-input" class="form-control" placeholder="Search..." aria-label="Search" list="card-list"></form>
+        <form class="w-100 text-center input-group" role="search" id="search-form">
+          <input type="search" id="search-input" class="form-control" placeholder="Search..." aria-label="Search" list="card-list">
+          <button type="submit"><span class="material-symbols-outlined mt-1">search</span></button>
+        </form>
       </div>
     </div>
   </header>
   <div class="container grid">
-    <div class="loader d-none text-center"></div>
-    <div class="row" id="card-container"></div>
+    <div class="text-center">
+      <div class="loader d-none text-center"></div>
+    </div>
+    <div class="text-center" id="results-count">Search for a card!</div>
+    <div class="row" id="card-container">
+      <div><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br></div>
+    </div>
+    <br><br><br><br><br>
   </div>
+
+  <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+    <div class="col-md-4 d-flex align-items-center"> <a href="/" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1" aria-label="Bootstrap"> <svg class="bi" width="30" height="24" aria-hidden="true">
+          <use xlink:href="#bootstrap"></use>
+        </svg> </a> <span class="mb-3 mb-md-0 text-body-secondary">Made by Justice Plunkett</span></div>
+    <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+      <li class="ms-3"><a class="text-body-secondary" href="#" aria-label="Instagram"><svg class="bi" width="24" height="24" aria-hidden="true">
+            <use xlink:href="#instagram"></use>
+          </svg></a></li>
+      <li class="ms-3"><a class="text-body-secondary" href="#" aria-label="Facebook"><svg class="bi" width="24" height="24">
+            <use xlink:href="#facebook"></use>
+          </svg></a></li>
+    </ul>
+  </footer>
 
   <datalist id="card-list"></datalist>
   <template id="card-template">
